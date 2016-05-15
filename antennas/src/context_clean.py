@@ -14,7 +14,7 @@ class Range(object):
             self.delta = delta
 
 # Setting do_debug to True will dump all the cards generated with context_clean, so you can verify the output more easily in a text editor (and debug that file manually)
-do_debug = True
+do_debug = False
 
 def debug(card, *args):
     if do_debug:
