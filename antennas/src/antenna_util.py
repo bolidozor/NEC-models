@@ -8,7 +8,7 @@ def reflection_coefficient(z, z0):
 
 def vswr(z, z0):
     Gamma = reflection_coefficient(z, z0)
-    return float((1 + Gamma) / (1 - Gamma))
+    return float(np.abs((1 + Gamma) / (1 - Gamma)))
 
 def mismatch(z, z0):
     Gamma = reflection_coefficient(z, z0)
