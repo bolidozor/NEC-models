@@ -188,7 +188,15 @@ class geometry_clean(object):
         debug("GH", tag_id, nr_segments, spacing, lenght, start_radius[0], start_radius[1], end_radius[0], end_radius[1], wire_radius)
 
         self.geometry.helix(tag_id, nr_segments, spacing, lenght, start_radius[0], start_radius[1], end_radius[0], end_radius[1], wire_radius)
+        
 
+    def rectangular_patch(self, ax1, ay1, az1, ax2, ay2, az2, ax3, ay3, az3):
+        """ The helix is a versatile geometry element. For example, to generate a spsiral printed circuit antenna, use a helix of zero lenght/height. Lenght could be negative or positive (negative for a left-handed helix) """
+
+        debug("SP", 0, 1, ax1, ay1, az1, ax2, ay2, az2, 0)
+        debug("SC", 0,  0, ax3, ay3, az3, 0, 0, 0, 0)
+
+        self.geometry.rectangular_patch(ax1, ay1, az1, ax2, ay2, az2, ax3, ay3, az3)
 
     # TODO include an option for selecting a structure segment instead of whole structure.
     def rotate(self, tag_inc, positions):
