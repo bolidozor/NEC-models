@@ -54,12 +54,12 @@ def sc_quad_helix(height, diameter, wire_diameter = 0.02):
     #print "Wire Diameter %s" % (wire_r * 2)
     
     helix_turns = 0.5
-    helix_elevation = 0.05  # elevation of helix above conductive plate
-    excitation_lenght = 0.05
+    helix_elevation = 0.03  # elevation of helix above conductive plate
+    excitation_lenght = 0.03
     
     # helix loop 
     helix_twist_height = height / helix_turns
-    geo.wire(tag_id=1, nr_segments=1, src=np.array([0, 0, 0]), dst=np.array([helix_r, 0, -excitation_lenght]), radius=wire_r)
+    geo.wire(tag_id=1, nr_segments=1, src=np.array([helix_r, 0, 0]), dst=np.array([helix_r, 0, -excitation_lenght]), radius=wire_r)
     geo.helix(tag_id=1, nr_segments=50, spacing=helix_twist_height, lenght=height, start_radius=np.array([helix_r, helix_r]), end_radius=np.array([helix_r, helix_r]), wire_radius=wire_r)
     geo.move(rotate_z=90, move_z=0, copies=3, segment=0, tag_inc=1)
     geo.wire(tag_id=10, nr_segments=2, src=np.array([0, 0, height]), dst=np.array([helix_r, 0, height]), radius=wire_r)
@@ -187,14 +187,12 @@ def show_report(height, diameter, wire_diameter):
     print "Impedance: (%6.1f,%+6.1fI) Ohms" % (z.real, z.imag)
     print "VSWR @ 50 Ohm is %6.6f" % vswr(z, system_impedance)
 
-    nec = sc_quad_helix(height, diameter, wire_diameter)
   
     freqs, gains, vswrs = get_gain_swr_range(height, diameter, wire_diameter, start=100, stop=200)
 
-    del nec
 
     freqs = np.array(freqs) / 1000000 # In MHz
-      
+
     ax = plt.subplot(111)
     ax.plot(freqs, gains)
     draw_frequencie_ranges(ax)
@@ -202,14 +200,6 @@ def show_report(height, diameter, wire_diameter):
     ax.set_title("Gains of a SC QHA antenna")
     ax.set_xlabel("Frequency (MHz)")
     ax.set_ylabel("Gain")
-
-    #ax.yaxis.set_major_locator(majorLocator)
-    #ax.yaxis.set_major_formatter(majorFormatter)
-
-    #ax.yaxis.set_minor_locator(minorLocator)
-    #ax.yaxis.set_minor_formatter(minorFormatter)
-
-    #ax.yaxis.grid(b=True, which='minor', color='0.75', linestyle='-')
 
     plt.show()
 
@@ -222,6 +212,41 @@ def show_report(height, diameter, wire_diameter):
     ax.set_xlabel("Frequency (MHz)")
     ax.set_ylabel("VSWR")
     plt.show()
+
+
+    nec.set_frequency(143.05) # TODO: ensure that we don't need to re-generate this!
+    nec.radiation_pattern(thetas=Range(-150,150, count=90), phis=Range(0,90,count=90))
+
+    rp = nec.context.get_radiation_pattern(0)
+    ipt = nec.get_input_parameters(0)
+    z = ipt.get_impedance()[0]
+
+    # Gains are in decibels
+    gains_db = rp.get_gain() # Is an array of theta,phi -> gain. In this case we only have one phi
+    thetas = rp.get_theta_angles() * 3.1415 / 180.0
+    phis = rp.get_phi_angles() * 3.1415 / 180.0
+
+
+    ax = plt.subplot(121, polar=True)
+    ax.plot(thetas, gains_db, color='r', linewidth=3)
+    ax.set_xticks(np.pi/180. * np.linspace(180,  -180, 8, endpoint=False))
+    ax.set_theta_zero_location("N")
+    ax.set_rlim((-24.0, 9.0)) # TODO: automate. TODO: 4nec2 cheats and makes the lowest points (-999) the same as the lowest non-999 point :)
+    ax.set_rticks(np.linspace(-24, 9, 10, endpoint=False))
+    ax.grid(True)
+    ax.set_title("Gain pattern in the vertical plane", va='bottom')
+
+    ax = plt.subplot(122, polar=True)
+    ax.plot(phis, gains_db[50,:], color='r', linewidth=3)
+    ax.set_xticks(np.pi/180. * np.linspace(0,  360, 8, endpoint=False))
+    ax.set_theta_zero_location("N")
+    ax.set_rlim((-6, 2.0)) # TODO: automate. TODO: 4nec2 cheats and makes the lowest points (-999) the same as the lowest non-999 point :)
+    ax.set_rticks(np.linspace(-5, 2, 10, endpoint=False))
+    ax.grid(True)
+
+    ax.set_title("Gain pattern in the horizontal plane", va='bottom')
+    plt.show()
+
 
 
 # In[ ]:
@@ -269,22 +294,7 @@ print design_freq_mhz
 # In[ ]:
 """
 
-nec = sc_quad_helix(0.408, 0.842, 0.0198)
-nec.set_frequency(143.05) # TODO: ensure that we don't need to re-generate this!
-nec.radiation_pattern(thetas=Range(-180,180, count=90), phis=Range(0,90,count=90))
 
-
-#rp = nec.context.get_radiation_pattern(0)
-#ipt = nec.get_input_parameters(0)
-#z = ipt.get_impedance()[0]
-
-
-# In[7]:
-
-# Gains are in decibels
-gains_db = rp.get_gain() # Is an array of theta,phi -> gain. In this case we only have one phi
-thetas = rp.get_theta_angles() * 3.1415 / 180.0
-phis = rp.get_phi_angles() * 3.1415 / 180.0
 
 """
 # In[ ]:
@@ -294,25 +304,6 @@ phis = rp.get_phi_angles() * 3.1415 / 180.0
 
 # In[8]:
 
-ax = plt.subplot(121, polar=True)
-ax.plot(thetas, gains_db, color='r', linewidth=3)
-ax.set_xticks(np.pi/180. * np.linspace(180,  -180, 8, endpoint=False))
-ax.set_theta_zero_location("N")
-ax.set_rlim((-24.0, 9.0)) # TODO: automate. TODO: 4nec2 cheats and makes the lowest points (-999) the same as the lowest non-999 point :)
-ax.set_rticks(np.linspace(-24, 9, 10, endpoint=False))
-ax.grid(True)
-ax.set_title("Gain pattern in the vertical plane", va='bottom')
-
-ax = plt.subplot(122, polar=True)
-ax.plot(phis, gains_db[50,:], color='r', linewidth=3)
-ax.set_xticks(np.pi/180. * np.linspace(0,  360, 8, endpoint=False))
-ax.set_theta_zero_location("N")
-ax.set_rlim((-6, 2.0)) # TODO: automate. TODO: 4nec2 cheats and makes the lowest points (-999) the same as the lowest non-999 point :)
-ax.set_rticks(np.linspace(-5, 2, 10, endpoint=False))
-ax.grid(True)
-
-ax.set_title("Gain pattern in the horizontal plane", va='bottom')
-plt.show()
 
 
 # In[ ]:
