@@ -55,25 +55,26 @@ def sc_quad_helix(height, diameter, wire_diameter = 0.02):
     
     helix_turns = 0.5
     helix_elevation = 0.05  # elevation of helix above conductive plate
+    excitation_lenght = 0.05
     
     # helix loop 
     helix_twist_height = height / helix_turns
-    #geo.wire(tag_id=1, nr_segments=1, src=np.array([0, 0, 0]), dst=np.array([helix_r, 0, -helix_elevation]), radius=wire_r)
+    geo.wire(tag_id=1, nr_segments=1, src=np.array([0, 0, 0]), dst=np.array([helix_r, 0, -excitation_lenght]), radius=wire_r)
     geo.helix(tag_id=1, nr_segments=50, spacing=helix_twist_height, lenght=height, start_radius=np.array([helix_r, helix_r]), end_radius=np.array([helix_r, helix_r]), wire_radius=wire_r)
-    geo.move(rotate_z=90, copies=3, tag_inc=1)
+    geo.move(rotate_z=90, move_z=0, copies=3, segment=0, tag_inc=1)
     geo.wire(tag_id=10, nr_segments=2, src=np.array([0, 0, height]), dst=np.array([helix_r, 0, height]), radius=wire_r)
     geo.wire(tag_id=11, nr_segments=2, src=np.array([0, 0, height]), dst=np.array([0, helix_r, height]), radius=wire_r)
     geo.wire(tag_id=12, nr_segments=2, src=np.array([0, 0, height]), dst=np.array([-helix_r, 0, height]), radius=wire_r)
     geo.wire(tag_id=13, nr_segments=2, src=np.array([0, 0, height]), dst=np.array([0, -helix_r, height]), radius=wire_r)
     
     ## bottom helix connecting wires
-    geo.wire(tag_id=20, nr_segments=2, src=np.array([0, 0, 0]), dst=np.array([helix_r, 0, 0]), radius=wire_r)
-    geo.wire(tag_id=21, nr_segments=2, src=np.array([0, 0, 0]), dst=np.array([0, helix_r, 0]), radius=wire_r)
-    geo.wire(tag_id=22, nr_segments=2, src=np.array([0, 0, 0]), dst=np.array([-helix_r, 0, 0]), radius=wire_r)
-    geo.wire(tag_id=23, nr_segments=2, src=np.array([0, 0, 0]), dst=np.array([0, -helix_r, 0]), radius=wire_r)
+    geo.wire(tag_id=20, nr_segments=2, src=np.array([0, 0, -excitation_lenght]), dst=np.array([helix_r, 0, -excitation_lenght]), radius=wire_r)
+    geo.wire(tag_id=21, nr_segments=2, src=np.array([0, 0, -excitation_lenght]), dst=np.array([0, helix_r, -excitation_lenght]), radius=wire_r)
+    geo.wire(tag_id=22, nr_segments=2, src=np.array([0, 0, -excitation_lenght]), dst=np.array([-helix_r, 0, -excitation_lenght]), radius=wire_r)
+    geo.wire(tag_id=23, nr_segments=2, src=np.array([0, 0, -excitation_lenght]), dst=np.array([0, -helix_r, -excitation_lenght]), radius=wire_r)
     
-    geo.wire(tag_id=1, nr_segments=1, src=np.array([0, 0, 0]), dst=np.array([0, 0, -helix_elevation]), radius=wire_r) # vertical wire connecting the patch and helixal antenna
-    geo.rectangular_patch(a1 = np.array([-1, -1, -helix_elevation]), a2 = np.array([1, -1, -helix_elevation]), a3= np.array([1, 1, -helix_elevation]))
+    geo.wire(tag_id=1, nr_segments=1, src=np.array([0, 0, -excitation_lenght]), dst=np.array([0, 0, -helix_elevation -excitation_lenght]), radius=wire_r) # vertical wire connecting the patch and helixal antenna
+    geo.rectangular_patch(a1 = np.array([-1, -1, -helix_elevation - excitation_lenght]), a2 = np.array([1, -1, -helix_elevation - excitation_lenght]), a3= np.array([1, 1, -helix_elevation - excitation_lenght]))
     #geo.rectangular_patch(a1 = np.array([-1, -1, 0]), a2 = np.array([1, -1, 0]), a3= np.array([1, 1, 0]))
 
     # Everything is copper
@@ -106,7 +107,7 @@ def get_gain_swr_range(height, diameter, wire_diameter, start=start, stop=stop, 
     for freq in range(start, stop + 1, step):
         nec = sc_quad_helix(height, diameter, wire_diameter)
         nec.set_frequency(freq) # TODO: ensure that we don't need to re-generate this!
-        nec.radiation_pattern(thetas=Range(90, 90, count=1), phis=Range(180,180,count=1))
+        nec.radiation_pattern(thetas=Range(0, 0, count=1), phis=Range(45,45,count=1))
 
         rp = nec.context.get_radiation_pattern(0)
         ipt = nec.get_input_parameters(0)
@@ -122,14 +123,14 @@ def get_gain_swr_range(height, diameter, wire_diameter, start=start, stop=stop, 
 def get_gain_swr(height, diameter, wire_diameter, freq):
     nec = sc_quad_helix(height, diameter, wire_diameter)
     nec.set_frequency(freq) # TODO: ensure that we don't need to re-generate this!
-    nec.radiation_pattern(thetas=Range(-90, 90, count=90), phis=Range(90,90,count=1))
+    nec.radiation_pattern(thetas=Range(0, 0, count=1), phis=Range(90,90,count=1))
 
     rp = nec.context.get_radiation_pattern(0)
     ipt = nec.get_input_parameters(0)
     z = ipt.get_impedance()[0]
     
     gains_db = rp.get_gain() # Is an array of theta,phi -> gain. In this case we only have one phi    
-    gain = np.average(gains_db[30,:])
+    gain = np.average(gains_db[0,:])
 
     return ipt.get_frequency(), gain, vswr(z, system_impedance)
 
@@ -183,7 +184,7 @@ def show_report(height, diameter, wire_diameter):
 
     z = simulate_and_get_impedance(nec)
 
-    print "Initial impedance: (%6.1f,%+6.1fI) Ohms" % (z.real, z.imag)
+    print "Impedance: (%6.1f,%+6.1fI) Ohms" % (z.real, z.imag)
     print "VSWR @ 50 Ohm is %6.6f" % vswr(z, system_impedance)
 
     nec = sc_quad_helix(height, diameter, wire_diameter)
@@ -198,7 +199,7 @@ def show_report(height, diameter, wire_diameter):
     ax.plot(freqs, gains)
     draw_frequencie_ranges(ax)
 
-    ax.set_title("Gains of a 5-element log-periodic antenna")
+    ax.set_title("Gains of a SC QHA antenna")
     ax.set_xlabel("Frequency (MHz)")
     ax.set_ylabel("Gain")
 
@@ -242,12 +243,12 @@ target = create_optimization_target()
 
 # Use differential evolution:
 minimizer_kwargs = dict(method='Nelder-Mead')
-bounds = [ (0.1, 0.9), (0.1, 0.9), (0.018, 0.022) ]
-#optimized_result = scipy.optimize.differential_evolution(target, bounds, seed=42, disp=True, popsize=20)
+bounds = [ (0.1, 0.9), (0.1, 0.9), (0.018, 0.018) ]
+optimized_result = scipy.optimize.differential_evolution(target, bounds, seed=42, disp=True, popsize=20)
 
 # Basin hopping isn't so good, but could also have been an option:
 #optimized_result = scipy.optimize.basinhopping(target, np.array([initial_height, initial_diameter]), minimizer_kwargs=minimizer_kwargs, niter=5, stepsize=0.015, T=2.0, disp=True)
-"""
+
 print "Optimized antenna..."
 optimized_height, optimized_diameter, optimized_wire_diameter =  optimized_result.x[0], optimized_result.x[1] , optimized_result.x[2]
 print "Wavelength is %0.4fm, optimized height and diameter is %0.4fm, %0.4fm helix wire diameter should be %0.4fm " % (wavelength, optimized_height, optimized_diameter, optimized_wire_diameter)
@@ -285,7 +286,7 @@ gains_db = rp.get_gain() # Is an array of theta,phi -> gain. In this case we onl
 thetas = rp.get_theta_angles() * 3.1415 / 180.0
 phis = rp.get_phi_angles() * 3.1415 / 180.0
 
-
+"""
 # In[ ]:
 
 

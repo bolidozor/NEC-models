@@ -4,7 +4,7 @@
 import numpy as np
 
 def reflection_coefficient(z, z0):
-  return np.abs((np.abs(z) - z0) / (np.abs(z) + z0))
+  return np.abs((np.abs(z.real) + z.imag*1j - z0) / (np.abs(z.real) + z.imag*1j + z0))
 
 def vswr(z, z0):
     Gamma = reflection_coefficient(z, z0)
