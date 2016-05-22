@@ -4,11 +4,11 @@
 import numpy as np
 
 def reflection_coefficient(z, z0):
-  return np.abs((z - z0) / (z + z0))
+  return np.abs((np.abs(z) - z0) / (np.abs(z) + z0))
 
 def vswr(z, z0):
     Gamma = reflection_coefficient(z, z0)
-    return float(np.abs((1 + Gamma) / (1 - Gamma)))
+    return float((1 + Gamma) / (1 - Gamma))
 
 def mismatch(z, z0):
     Gamma = reflection_coefficient(z, z0)
