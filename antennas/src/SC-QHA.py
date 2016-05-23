@@ -54,8 +54,8 @@ def sc_quad_helix(height, diameter, wire_diameter = 0.02):
     #print "Wire Diameter %s" % (wire_r * 2)
     
     helix_turns = 0.5
-    helix_elevation = 0.03  # elevation of helix above conductive plate
-    excitation_lenght = 0.03
+    helix_elevation = 0.1  # elevation of helix above conductive plate
+    excitation_lenght = 0.1
     
     # helix loop 
     helix_twist_height = height / helix_turns
@@ -180,12 +180,14 @@ def draw_frequencie_ranges(ax):
     ax.axvline(x=144, color='red', linewidth=1)
 
 def show_report(height, diameter, wire_diameter):
-    nec = sc_quad_helix(height, diameter, wire_diameter)
+    """nec = sc_quad_helix(height, diameter, wire_diameter)
 
     z = simulate_and_get_impedance(nec)
 
     print "Impedance: (%6.1f,%+6.1fI) Ohms" % (z.real, z.imag)
     print "VSWR @ 50 Ohm is %6.6f" % vswr(z, system_impedance)
+
+    del nec
 
   
     freqs, gains, vswrs = get_gain_swr_range(height, diameter, wire_diameter, start=100, stop=200)
@@ -212,10 +214,13 @@ def show_report(height, diameter, wire_diameter):
     ax.set_xlabel("Frequency (MHz)")
     ax.set_ylabel("VSWR")
     plt.show()
+    """
 
-
+    nec = sc_quad_helix(height, diameter, wire_diameter)
     nec.set_frequency(143.05) # TODO: ensure that we don't need to re-generate this!
-    nec.radiation_pattern(thetas=Range(-150,150, count=90), phis=Range(0,90,count=90))
+    nec.radiation_pattern(thetas=Range(0,0, count=90), phis=Range(0,0,count=90))
+    #nec.radiation_pattern(thetas=Range(0,80, count=90), phis=Range(0,80,count=90))
+
 
     rp = nec.context.get_radiation_pattern(0)
     ipt = nec.get_input_parameters(0)
@@ -248,6 +253,38 @@ def show_report(height, diameter, wire_diameter):
     plt.show()
 
 
+    z = simulate_and_get_impedance(nec)
+
+    print "Impedance: (%6.1f,%+6.1fI) Ohms" % (z.real, z.imag)
+    print "VSWR @ 50 Ohm is %6.6f" % vswr(z, system_impedance)
+
+    del nec
+
+  
+    freqs, gains, vswrs = get_gain_swr_range(height, diameter, wire_diameter, start=100, stop=200)
+
+
+    freqs = np.array(freqs) / 1000000 # In MHz
+
+    ax = plt.subplot(111)
+    ax.plot(freqs, gains)
+    draw_frequencie_ranges(ax)
+
+    ax.set_title("Gains of a SC QHA antenna")
+    ax.set_xlabel("Frequency (MHz)")
+    ax.set_ylabel("Gain")
+
+    plt.show()
+
+    ax = plt.subplot(111)
+    ax.plot(freqs, vswrs)
+    draw_frequencie_ranges(ax)
+
+    ax.set_yscale("log")
+    ax.set_title("VSWR of a QHA antenna @ 100 Ohm impedance")
+    ax.set_xlabel("Frequency (MHz)")
+    ax.set_ylabel("VSWR")
+    plt.show()
 
 # In[ ]:
 
