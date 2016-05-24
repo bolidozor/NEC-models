@@ -81,6 +81,7 @@ module manufacturing_helper(part = 1){
 x_size = diameter/5;
 y_size = diameter/5;
 
+rotate([0, -helix_angle, 0])
   difference() {
     translate([0, diameter/2, height/2])
       rotate([0, helix_angle, 0])
@@ -116,4 +117,4 @@ y_size = diameter/5;
   }  
 }
 
-manufacturing_helper(part = 1);
+manufacturing_helper(part = 2);
