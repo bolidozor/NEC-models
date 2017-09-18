@@ -8,7 +8,7 @@ base_height = 50;
 base_side = 2000;
 base_margin = 10; 
 
-height = 0.3122*1000;
+height = 0.6*1000;
 diameter = 0.3899*1000;
 
 helix_circumference = (diameter*PI);
@@ -41,6 +41,8 @@ module elliptic_ring(r1 = 10, r2 = 5, r = 2, slices = 100, h = 0, w = 360)
 
 module loop() {
   union() {
+    rotate([0,90,0])
+      cylinder(r=wire_r, h=diameter + 2 * wire_r, center=true);
     translate([0,0,height]) 
       rotate([0,90,0]) 
         cylinder(r=wire_r, h=diameter + 2 * wire_r, center=true);
@@ -70,9 +72,10 @@ translate([base_margin/2,-base_margin/2 - base_side/2, 0]) cube([base_side/2, ba
 
 module antenna(){
   union() {
-      translate([0,0,base_height]) 
-          quad_helix();
-
+      translate([0,0,2*base_height]) 
+        quad_helix();
+      translate([0,0,base_height + 40])
+        color("blue") cube([150, 150, 80], center = true);
       base();
   }
 }  
@@ -116,4 +119,5 @@ y_size = diameter/5;
   }  
 }
 
-manufacturing_helper(part = 1);
+//manufacturing_helper(part = 1);
+antenna();
