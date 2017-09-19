@@ -80,6 +80,41 @@ module antenna(){
   }
 }  
 
+module antenna_array(){
+    translate([base_side/4,base_side/4,0])
+      union() {
+          translate([0,0,2*base_height]) 
+            quad_helix();
+          translate([0,0,base_height + 40])
+            color("blue") cube([150, 150, 80], center = true);
+      }
+
+    translate([-base_side/4,base_side/4,0])
+      union() {
+          translate([0,0,2*base_height]) 
+            quad_helix();
+          translate([0,0,base_height + 40])
+            color("blue") cube([150, 150, 80], center = true);
+      }
+
+    translate([-base_side/4,-base_side/4,0])
+      union() {
+          translate([0,0,2*base_height]) 
+            quad_helix();
+          translate([0,0,base_height + 40])
+            color("blue") cube([150, 150, 80], center = true);
+      }
+
+    translate([base_side/4,-base_side/4,0])
+      union() {
+          translate([0,0,2*base_height]) 
+            quad_helix();
+          translate([0,0,base_height + 40])
+            color("blue") cube([150, 150, 80], center = true);
+      }
+  base();
+}  
+
 module manufacturing_helper(part = 1){
 x_size = diameter/5;
 y_size = diameter/5;
@@ -120,4 +155,4 @@ y_size = diameter/5;
 }
 
 //manufacturing_helper(part = 1);
-antenna();
+antenna_array();
