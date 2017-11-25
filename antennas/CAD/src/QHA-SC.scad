@@ -8,7 +8,7 @@ base_height = 50;
 base_side = 2000;
 base_margin = 10; 
 
-height = 0.3122*1000;
+height = 0.6*1000;
 diameter = 0.3899*1000;
 
 echo("Helix diameter:");
@@ -18,6 +18,7 @@ echo(height);
 
 echo("Helix cut tube lenght:");
 helix_circumference = (diameter*PI);
+
 helix_tube_lenght = sqrt(pow(helix_circumference/2,2) + pow(height,2));    // pythogarian calculation of helix_tube_lenght. 
 echo(helix_tube_lenght ); //- wire_r
 
@@ -49,18 +50,21 @@ module elliptic_ring(r1 = 10, r2 = 5, r = 2, slices = 100, h = 0, w = 360)
 
 module loop() {
   union() {
+    rotate([0,90,0])
+        cylinder(r=wire_r, h=diameter + 2 * wire_r, center=true);
     translate([0,0,height]) 
-      rotate([0,90,0]) 
-        cylinder(r=wire_r, h=diameter + 2 * wire_r, center=true);  // top short circuiting conductor 
+        rotate([0,90,0]) 
+            cylinder(r=wire_r, h=diameter + 2 * wire_r, center=true);  // top short circuiting conductor 
     
     elliptic_ring(h = height, w = 180, r1 = diameter/2, r2 = diameter/2, r = wire_r);  // half of helix loop
     rotate([0,0,180])
-      elliptic_ring(h = height, w = 180, r1 = diameter/2, r2 = diameter/2, r = wire_r);  // second half of helix loop
+        elliptic_ring(h = height, w = 180, r1 = diameter/2, r2 = diameter/2, r = wire_r);  // second half of helix loop
   }
 }
 
 module quad_helix() {   
   union() {
+    //z = (big_height - 0.238*lambda)/2;
     loop();
     rotate([0,0,90]) loop();
   }
@@ -77,18 +81,69 @@ translate([base_margin/2,-base_margin/2 - base_side/2, 0]) cube([base_side/2, ba
 
 module antenna(){
   union() {
-      translate([0,0,base_height]) 
-          quad_helix();
-
+      translate([0,0,2*base_height]) 
+        quad_helix();
+      translate([0,0,base_height + 40])
+        color("blue") cube([150, 150, 80], center = true);
       base();
   }
 }  
+
+module antenna_block(){
+    translate([base_side/4,base_side/4,0])
+      union() {
+          translate([0,0,2*base_height]) 
+            quad_helix();
+          translate([0,0,base_height + 40])
+            color("blue") cube([150, 150, 80], center = true);
+      }
+
+    translate([-base_side/4,base_side/4,0])
+      union() {
+          translate([0,0,2*base_height]) 
+            quad_helix();
+          translate([0,0,base_height + 40])
+            color("blue") cube([150, 150, 80], center = true);
+      }
+
+    translate([-base_side/4,-base_side/4,0])
+      union() {
+          translate([0,0,2*base_height]) 
+            quad_helix();
+          translate([0,0,base_height + 40])
+            color("blue") cube([150, 150, 80], center = true);
+      }
+
+    translate([base_side/4,-base_side/4,0])
+      union() {
+          translate([0,0,2*base_height]) 
+            quad_helix();
+          translate([0,0,base_height + 40])
+            color("blue") cube([150, 150, 80], center = true);
+      }
+  base();
+}
+
+module antenna_array(){
+    translate([4000,0,0])
+        antenna_block();
+
+    translate([-4000,0,0])
+        antenna_block();
+
+    translate([0,4000,0])
+        antenna_block();
+
+    translate([0,-4000,0])
+        antenna_block();
+
+}
+
 
 module manufacturing_helper(part = 1){
 x_size = diameter/5;
 y_size = diameter/5;
 
-rotate([0, -helix_angle, 0])
   difference() {
     translate([0, diameter/2, height/2])
       rotate([0, helix_angle, 0])
@@ -124,5 +179,5 @@ rotate([0, -helix_angle, 0])
   }  
 }
 
-%manufacturing_helper(part = 2);
-antenna();
+//manufacturing_helper(part = 1);
+antenna_array();
