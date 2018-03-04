@@ -85,7 +85,7 @@ module antenna(){
         quad_helix();
       translate([0,0,base_height + 40])
         color("blue") cube([150, 150, 80], center = true);
-      base();
+//      base();
   }
 }  
 
@@ -180,5 +180,6 @@ y_size = diameter/5;
 }
 
 //manufacturing_helper(part = 1);
-antenna_array();
+//antenna_array();
 //antenna_block();
+antenna();
